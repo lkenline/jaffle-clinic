@@ -1,0 +1,51 @@
+version: 2
+
+sources:
+  - name: licenses
+    database: loader
+    schema: jaffle_clinic
+
+    tables:
+      - name: california
+        description: >
+          A file of licenses issued by the state of California. Each row represents a single license.
+
+        columns:
+          - name: original_isuue_date
+            description: >
+              The original issue date of the license.
+
+
+      - name: massachusetts
+        description: >
+          A file of licenses issued by the state of Massachusetts. Each row represents a single license.
+
+        columns:
+          - name: licensee_name
+            description: >
+              The name of the person the License was issued under.
+              
+          - name: Status
+            description: >
+              The status of the license. Equivalent to the 'License Status' field that might exist in other sources.
+
+
+      - name: washington
+        description: >
+          A file of licenses issued by the state of Washington. Each row represents a single license.
+
+        columns:
+          - name: firstissuedate
+            description: >
+              The original issue date of the license.
+
+
+      - name: misc
+        description: >
+          A file of licenses from gathered across the following states: California, Massachusetts, Washington.
+          Each row represents a single license.
+          
+        columns:
+          - name: type
+            description: >
+              The type of license this is. Equivalent to the 'License Type' field that might exist in other sources.

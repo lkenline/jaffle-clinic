@@ -1,0 +1,87 @@
+models:
+  - name: licenses
+    description: >
+      A table of all unique licenses for the following states: California, Massachusetts, Washington.
+      One row represents a unique license
+
+    columns:
+      - name: id
+        description: >
+          The Primary Key for the table.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: license_state
+        description: >
+          The state issuing the license.
+
+      - name: license_number
+        description: >
+          The license number on the license.
+
+      - name: license_type
+        description: >
+          The type of license issued.
+
+      - name: license_status
+        description: >
+          The current status of the license.
+        data_tests:
+          - accepted_values:
+              values: ["Active", "Inactive", "Expired", "Suspended", "Unknown"]
+
+      - name: first_name
+        description: >
+          First name of the provider that holds this license.
+
+      - name: middle_name
+        description: >
+          Middle name of the provider that holds this license.
+
+      - name: last_name
+        description: >
+          Last name of the provider that holds this license.
+
+      - name: issue_date
+        description: >
+          The date the license was (originally) issued.
+
+      - name: expiration_date
+        description: >
+          The date the license will expire.
+
+
+  - name: practitioners
+    description: >
+      A table of unique practitioners across the following states: California, Massachusetts, Washington.
+      One row represents a unique practitioner.
+
+    columns:
+      - name: id
+        description: >
+          The Primary Key for the table.
+
+      - name: first_name
+        description: >
+          First name of the provider.
+
+      - name: middle_name
+        description: >
+          Middle name of the provider.
+
+      - name: last_name
+        description: >
+          Last name of the provider.
+
+      - name: license_types
+        description: >
+          Unique list of license types held by the provider.
+
+      - name: authorized_to_practice_in
+        description: >
+          Unique list of state codes where provider can currently practice.
+
+
+
+
