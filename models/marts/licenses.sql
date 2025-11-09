@@ -1,50 +1,39 @@
-with base as (
-
-    -- start from unified licenses table
-    select *
-    from {{ ref('int_licenses_all') }}
-
-),
-
-with_practitioner_id as (
+with dedup as (
 
     select
         *,
-        -- NOTE: this expression must match the one used in int_practitioners_all
-        {{ dbt_utils.generate_surrogate_key([
-            "upper(trim(coalesce(practitioner_full_name, '')))",
-            "cast(coalesce(birth_year, 0) as varchar)",
-            "upper(trim(coalesce(state, '')))"
-        ]) }} as practitioner_id
-    from base
+        row_number() over (
+            partition by
+                upper(trim(coalesce(state, ''))),
+                coalesce(state_license_number, ''),
+                coalesce(state_license_number_part_b, ''),
+                upper(trim(coalesce(license_type_raw, '')))
+            order by
+                expiration_date_raw desc
+        ) as rn
+    from {{ ref('int_licenses_all') }}
 
-),
+),     -- start from unified licenses, one row per raw license record
 
 final as (
 
     select
-        -- license-level primary key
+        -- Primary key for the table
         {{ dbt_utils.generate_surrogate_key([
             "upper(trim(coalesce(state, '')))",
             "coalesce(state_license_number, '')",
             "coalesce(state_license_number_part_b, '')",
             "upper(trim(coalesce(license_type_raw, '')))"
-        ]) }} as id,
+        ]) }}                                          as id,
+        case
+            when upper(state) in ('CA', 'CALIFORNIA', 'CALIFORNIA-RN') then 'CA'
+            when upper(state) in ('MA', 'MASSACHUSETTS')               then 'MA'
+            when upper(state) in ('WA', 'WASHINGTON')                  then 'WA'
+            else state
+        end as license_state,
+        state_license_number                           as license_number,
+        upper(trim(coalesce(license_type_raw, '')))    as license_type,
 
-        practitioner_id,
-
-        -- state + provenance
-        state,
-        state_source,
-
-        -- identifiers
-        state_license_number,
-        state_license_number_part_b,
-
-        -- normalized license type
-        upper(trim(coalesce(license_type_raw, ''))) as license_type,
-
-        -- normalized license status into canonical buckets
         case
             when upper(trim(license_status_raw)) in ('ACTIVE', 'A') then 'Active'
             when upper(trim(license_status_raw)) in ('INACTIVE', 'INACT', 'I') then 'Inactive'
@@ -52,30 +41,30 @@ final as (
             when upper(trim(license_status_raw)) in ('SUSPENDED', 'S') then 'Suspended'
             when license_status_raw is null or trim(license_status_raw) = '' then 'Unknown'
             else 'Unknown'
-        end as license_status,
+        end                                           as license_status,
 
-        -- keep raw dates (string) – we’ll parse flexibly in analysis queries
-        original_issue_date_raw,
-        expiration_date_raw,
+        practitioner_first_name                       as first_name,
+        practitioner_middle_name                      as middle_name,
+        practitioner_last_name                        as last_name,
 
-        -- practitioner name fields (denormalized)
-        practitioner_first_name,
-        practitioner_middle_name,
-        practitioner_last_name,
+        -- keep raw date strings as issue/expiration dates (OK for this exercise)
+        original_issue_date_raw                       as issue_date,
+        expiration_date_raw                           as expiration_date,
+
+        -- extra columns (not required by schema.yml, but useful for debugging)
         practitioner_full_name,
-
-        -- address
+        state_source,
+        state_license_number_part_b,
         address_city,
-        address_state_raw as address_state,
+        address_state_raw                             as address_state,
         address_postal_code,
-
-        -- misc useful fields
         birth_year,
         compact_status,
         active,
         state_license_id
 
-    from with_practitioner_id
+    from dedup
+    where rn = 1   -- one row per logical license
 
 )
 

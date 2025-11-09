@@ -81,7 +81,3 @@ models:
       - name: authorized_to_practice_in
         description: >
           Unique list of state codes where provider can currently practice.
-
-
-
-

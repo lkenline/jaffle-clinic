@@ -1,17 +1,17 @@
 with source as (
 
-    -- read from the seeded massachusetts table
     select *
     from {{ ref('massachusetts') }}
 
-),
+),     -- read from the seeded massachusetts table
+
 
 final as (
 
     select
         -- state metadata
-        'MA'              as state,
-        'massachusetts'   as state_source,
+        'MA'                              as state,
+        'massachusetts'                   as state_source,
 
         -- license identifiers
         cast(license_number as varchar)  as state_license_number,
@@ -26,7 +26,6 @@ final as (
         expiration_date                  as expiration_date_raw,
 
         -- practitioner names
-        -- we keep the full name string and leave first/middle/last null for now
         null                             as practitioner_first_name,
         null                             as practitioner_middle_name,
         null                             as practitioner_last_name,

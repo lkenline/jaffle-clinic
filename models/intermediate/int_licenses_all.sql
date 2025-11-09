@@ -21,10 +21,10 @@ with california as (
         address_state_raw,
         address_postal_code,
 
-        -- only WA has birth_year; CA doesn't
+        -- only WA has birth_year but CA doesn't
         cast(null as integer)                as birth_year,
 
-        -- only misc has compact_status / active; CA doesn't
+        -- only misc has compact_status / active but CA doesn't
         cast(null as varchar)                as compact_status,
         cast(null as varchar)                as active,
 

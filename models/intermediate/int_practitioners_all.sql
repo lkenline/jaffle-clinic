@@ -1,17 +1,14 @@
 with base as (
 
-    -- each row here is a license from any state
     select *
     from {{ ref('int_licenses_all') }}
 
-),
+),     -- each row here is a license from any state
 
 with_practitioner_id as (
 
     select
         *,
-        -- generate a stable practitioner_id
-        -- (same logic we'll reuse in the marts)
         {{ dbt_utils.generate_surrogate_key([
             "upper(trim(coalesce(practitioner_full_name, '')))",
             "cast(coalesce(birth_year, 0) as varchar)",
@@ -19,7 +16,7 @@ with_practitioner_id as (
         ]) }} as practitioner_id
     from base
 
-),
+),         -- generate a stable practitioner_id
 
 final as (
 
@@ -27,7 +24,7 @@ final as (
     select
         practitioner_id,
 
-        -- names: pick "max" as a deterministic representative
+        -- for names pick "max" as a deterministic representative
         max(practitioner_full_name)        as practitioner_full_name,
         max(practitioner_first_name)       as practitioner_first_name,
         max(practitioner_middle_name)      as practitioner_middle_name,

@@ -1,19 +1,18 @@
 with source as (
 
-    -- read from the seeded california table
     select *
     from {{ ref('california') }}
 
-),
+),     -- read from the seeded california table
+
 
 filtered as (
 
-    -- keep only individual practitioners (drop organization licenses)
     select *
     from source
     where indiv_or_org = 'I'
 
-),
+),     -- keep only individual practitioners (drop organization licenses)
 
 final as (
 
