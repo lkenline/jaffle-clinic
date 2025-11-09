@@ -4,7 +4,7 @@ name: "jaffle_clinic"
 version: "3.0.0"
 require-dbt-version: ">=1.10.0"
 
-profile: default # Put your profile here
+profile: jaffle_clinic_duckdb
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
