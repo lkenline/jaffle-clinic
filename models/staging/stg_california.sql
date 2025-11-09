@@ -1,17 +1,19 @@
 with source as (
 
+    -- read from the seeded california table
     select *
-    from {{ source('licenses', 'california') }}
+    from {{ ref('california') }}
 
-),     -- raw table defined in models/staging/source.yml
+),
 
 filtered as (
 
+    -- keep only individual practitioners (drop organization licenses)
     select *
     from source
     where indiv_or_org = 'I'
 
-),     -- keep only individual practitioners (drop organization licenses)
+),
 
 final as (
 
@@ -25,12 +27,15 @@ final as (
         cast(license_number_part_b as varchar)     as state_license_number_part_b,
 
         -- raw license type & status from the feed
-        coalesce(license_type, license_type_name)  as license_type_raw,
+        coalesce(
+            cast(license_type       as varchar),
+            cast(license_type_name  as varchar)
+        )                                          as license_type_raw,
         license_status                             as license_status_raw,
 
-        -- dates in MM-DD-YYYY format
-        to_date(original_issue_date, 'MM-DD-YYYY') as original_issue_date,
-        to_date(expiration_date,     'MM-DD-YYYY') as expiration_date,
+        -- keeping dates as raw strings for now
+        original_issue_date                        as original_issue_date_raw,
+        expiration_date                            as expiration_date_raw,
 
         -- practitioner names
         first_name                                 as practitioner_first_name,
@@ -47,8 +52,11 @@ final as (
 
         -- location info
         city                                       as address_city,
-        state                                      as address_state,
-        cast(coalesce(zip_code, zip) as varchar)   as address_postal_code,
+        state                                      as address_state_raw,
+        coalesce(
+            cast(zip_code as varchar),
+            cast(zip      as varchar)
+        )                                          as address_postal_code,
 
         -- extra useful raw fields (optional but nice to keep)
         suffix,
@@ -67,13 +75,13 @@ final as (
         address_line2      as address_line2_raw,
         relationship_name,
         relationship_name_part_b,
-        original_isuue_date as original_issue_date_raw,
-
+        original_isuue_date,
+        
         -- per-state license id (used later as a building block for the final license_id)
         {{ dbt_utils.generate_surrogate_key([
             "'CA'",
             'license_number',
-            'coalesce(license_type, license_type_name)'
+            "coalesce(cast(license_type as varchar), cast(license_type_name as varchar))"
         ]) }}                                    as state_license_id
 
     from filtered
